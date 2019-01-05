@@ -55,13 +55,50 @@ def euclidean_distance(feature_list1, feature_list2):
 
 
 def evaluate(classifier_factory, k):
-    AvgErr = None
-    AvgAcc = None
     # k - number of folds.
+
+    # TODO: get k-folded dataset.
+    dataset = None
+    labelsset = None
     # TODO: run k-cross validation.
     # TODO: 1 set is chosen as test.
     # TODO: all others are chosen as train.
     # TODO: repeat until all k fold been as "test set".
-    # TODO: return AvgError, AvgAccuracy
+
+    global_acc = 0
+    global_err = 0
+    for iter in range(k):
+        test_data = dataset[iter]
+        test_labels = labelsset[iter]
+
+        train_data = []
+        train_labels = []
+        # Get all train data and labels
+        for fold_idx in range(k):
+            if fold_idx == iter:
+                continue # dont train on test set.
+            train_data += dataset[fold_idx]
+            train_labels += labelsset[fold_idx]
+
+        classifier = classifier_factory.train(train_data, train_labels)
+
+        classifications = []
+        for sample in test_data:
+            classifications.append(classifier.classify(sample))
+
+        local_err = 0
+        local_acc = 0
+        N = len(classifications)
+        for i in range(N):
+            if classifications[i] == test_labels[i]:
+                local_acc += 1
+            else:
+                local_err += 1
+        global_err += local_err/N
+        global_acc += local_acc/N
+
+    AvgErr = global_err/k
+    AvgAcc = global_acc/k
+
     return AvgErr, AvgAcc
 
