@@ -9,15 +9,12 @@ class knn_factory(abstract_classifier_factory):
         self.k = k
 
     def train(self, data, labels):
-        # TODO: takes train set.
-        # TODO: return a knn_calsiffier.
         classifier = knn_classifier(data, labels, self.k)
         return classifier
 
 
 class knn_classifier(abstract_classifier):
     def __init__(self, train_data, train_labels, k=1):
-        # TODO initialize a knn classifier with a train set.
         self.data = train_data
         self.labels = train_labels
         self.num_samples = len(train_labels)
@@ -48,7 +45,6 @@ class knn_classifier(abstract_classifier):
 
 
 def euclidean_distance(feature_list1, feature_list2):
-    dist = None
     sum = 0
     for i in range(len(feature_list1)):
         x = feature_list1[i]
