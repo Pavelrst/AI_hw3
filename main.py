@@ -1,9 +1,11 @@
 import numpy as np
 import math
 import random
+from matplotlib import pyplot as plt
 
 from hw3_utils import load_data
 from classifier import knn_factory
+from classifier import evaluate
 
 def split_crosscheck_groups(train_features, train_labels, num_folds):
     # TODO: split to num_folds.
@@ -49,10 +51,27 @@ def main():
     print("features:",train_features.shape)
     print("labels:",train_labels)
 
-    folds = 200
+    folds = 2
     split_crosscheck_groups(train_features, train_labels, folds)
-    #knn3_fac = knn_factory(3)
-    #acc, err = evaluate(knn3_fac, folds)
+
+    # Experiment:
+    k_list = [1,3,5,7,13]
+    acc_list = []
+    err_list = []
+    for k in k_list:
+        knn3_fac = knn_factory(3)
+        acc, err = evaluate(knn3_fac, folds)
+        acc_list.append(acc)
+        err_list.append(err)
+
+    plt.subplot(2, 1, 1)
+    plt.plot(k_list, acc_list)
+    plt.subplot(2, 1, 2)
+    plt.plot(k_list, err_list)
+    plt.show()
+
+
+
 
 if __name__ == '__main__':
     main()
