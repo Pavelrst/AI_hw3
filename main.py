@@ -1,11 +1,14 @@
 import numpy as np
 import math
 import random
+import pickle
 from matplotlib import pyplot as plt
 
 from hw3_utils import load_data
 from classifier import knn_factory
 from classifier import evaluate
+from classifier import load_k_fold_data
+
 
 def split_crosscheck_groups(train_features, train_labels, num_folds):
     # TODO: split to num_folds.
@@ -28,34 +31,41 @@ def split_crosscheck_groups(train_features, train_labels, num_folds):
         curr_fold = folds_idx[i]
         features_folds[curr_fold].append(curr_feature)
         labels_folds[curr_fold].append(curr_lable)
-    #print("label folds", labels_folds)
-    #print("features_folds", features_folds)
 
-    # TODO: save it to file
+    #print("labels from fold1     =",labels_folds[1])
+    #print("features from fold1[0]  =", features_folds[1][0])
+
+    # save it to file in some readable format.
+    for fold_idx in range(len(labels_folds)):
+        filename = "ecg_fold_" + str(fold_idx) + ".data"
+        file = open(filename, "w")
+        for i in range(len(labels_folds[fold_idx])):
+            for f in range(len(features_folds[fold_idx][i])):
+                file.write(str(features_folds[fold_idx][i][f]))
+                file.write("\n")
+            file.write(str(labels_folds[fold_idx][i]))
+            file.write("\n")
+
+        file.close()
+
     return
 
 
-def evaluate(classifier_factory, k):
-    # k - number of folds.
-    # TODO: run k-cross validation.
-    # TODO: 1 set is chosen as test.
-    # TODO: all others are chosen as train.
-    # TODO: repeat until all k fold been as "test set".
-    # TODO: return AvgError, AvgAccuracy
-    return None
+
 
 def main():
     print("main")
 
     train_features, train_labels, test_features = load_data('data/Data.pickle')
-    print("features:",train_features.shape)
-    print("labels:",train_labels)
+    #print("features:",train_features.shape)
+    #print("labels:",train_labels)
 
     folds = 2
     split_crosscheck_groups(train_features, train_labels, folds)
 
     # Experiment:
-    k_list = [1,3,5,7,13]
+    #k_list = [1,3,5,7,13]
+    k_list = [1]
     acc_list = []
     err_list = []
     for k in k_list:
@@ -63,7 +73,7 @@ def main():
         acc, err = evaluate(knn3_fac, folds)
         acc_list.append(acc)
         err_list.append(err)
-
+#
     plt.subplot(2, 1, 1)
     plt.plot(k_list, acc_list)
     plt.subplot(2, 1, 2)
