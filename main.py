@@ -12,6 +12,7 @@ from classifier import load_k_fold_data
 from sklearn import tree
 from sklearn.linear_model import Perceptron
 from sklearn.neural_network import MLPClassifier
+from classifier import mlp_concurrent_model
 
 
 def split_crosscheck_groups(train_features, train_labels, num_folds):
@@ -118,36 +119,9 @@ def main():
             print("perceptron acc=", acc, " perceptron err=", err)
             exp_writer.writerow([2, acc, err])
 
-    train_data_mlp = train_features[:750]
-    train_labels_mlp = train_labels[:750]
-    val_data_mlp = train_features[-250:]
-    val_labels_mlp = train_labels[-250:]
 
-    best_acc = 0
-    for optim in ['lbfgs']: # ['lbfgs','sgd','adam']:
-        print(optim)
-        for activ in ['relu']:#['identity', 'logistic', 'tanh', 'relu']:
-            print(activ)
-            for alph in [1e-1]: #[1e-1,1e-2,1e-3,1e-4,1e-5,1e-6,1e-7,1e-8]:
-                print(alph)
-                for lr in  ['constant']: #['constant', 'invscaling', 'adaptive']:
-                    print(lr)
-                    for layers in [(100,200,200,50)]:# [(20,10),(100,50),(200,100),(20,50,10),(50,100,20),(100,200,50),(20,50,50,10),(50,100,100,20),(100,200,200,50)]:
-                        print(layers)
-                        myMLP = MLPClassifier(tol=1e-5 ,shuffle=True, max_iter=1000, learning_rate=lr, verbose=False, activation=activ, solver=optim, alpha=alph, hidden_layer_sizes = layers, random_state = None)
-                        myMLP.fit(train_data_mlp,train_labels_mlp)
-                        res = myMLP.predict(val_data_mlp)
-
-                        right = 0
-                        wrong = 0
-                        for i in range(len(res)):
-                            if res[i] == val_labels_mlp[i]:
-                                right += 1
-                            else:
-                                wrong += 1
-                        acc = right / len(res)
-                        err = wrong / len(res)
-                        print("mlp acc=",acc, " err=",err)
+    my_model = mlp_concurrent_model(0.965,10,0.97)
+    my_model.fit(train_features,train_labels)
 
 
 if __name__ == '__main__':

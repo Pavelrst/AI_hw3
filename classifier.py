@@ -7,6 +7,88 @@ from sklearn import tree
 from sklearn.linear_model import Perceptron
 from sklearn.neural_network import MLPClassifier
 
+class mlp_concurrent_model():
+    def __init__(self,min_acc=0.96,max_iter=5,max_acc=0.97):
+        self.min_acc = min_acc
+        self.max_iter = max_iter
+        self.max_acc = max_acc
+
+    def fit(self,train_features, train_labels):
+        # TODO: train 3 different classifiers
+        alph = 1e-1
+        lr = 'constant'
+        layers = (100, 200, 200,50)
+        train_data_mlp = train_features[:750]
+        train_labels_mlp = train_labels[:750]
+        self.val_data_mlp = train_features[-250:]
+        self.val_labels_mlp = train_labels[-250:]
+
+        acc = 0
+        iter = 0
+        print("training first net")
+        while acc < self.min_acc and iter < self.max_iter:
+            iter += 1
+            self.myMLP1 = MLPClassifier(tol=1e-5, shuffle=True, max_iter=200, learning_rate=lr, activation='relu',
+                                        solver='lbfgs', alpha=alph,hidden_layer_sizes=(50,100,20))
+            self.myMLP1.fit(train_data_mlp, train_labels_mlp)
+            res1 = self.myMLP1.predict(self.val_data_mlp)
+            acc = self.calc_acc_err(res1,self.val_labels_mlp)
+            if acc > self.max_acc: break
+
+        acc = 0
+        iter = 0
+        print("training second net")
+        while acc < self.min_acc and iter < self.max_iter:
+            iter += 1
+            self.myMLP2 = MLPClassifier(tol=1e-3, shuffle=True, max_iter=200, learning_rate=lr, activation='relu',
+                                        solver='adam', alpha=alph, hidden_layer_sizes=(20,100,100,20))
+            self.myMLP2.fit(train_data_mlp, train_labels_mlp)
+            res2 = self.myMLP2.predict(self.val_data_mlp)
+            acc = self.calc_acc_err(res2, self.val_labels_mlp)
+            if acc > self.max_acc: break
+
+        acc = 0
+        iter = 0
+        print("training third net")
+        while acc < self.min_acc and iter < self.max_iter:
+            iter +=1
+            self.myMLP3 = MLPClassifier(tol=1e-5, shuffle=True, max_iter=200, learning_rate=lr, activation='relu',
+                                        solver='lbfgs', alpha=alph, hidden_layer_sizes=(50,200,5))
+            self.myMLP3.fit(train_data_mlp, train_labels_mlp)
+            res3 = self.myMLP3.predict(self.val_data_mlp)
+            acc = self.calc_acc_err(res3, self.val_labels_mlp)
+            if acc > self.max_acc: break
+
+        temp_res = np.zeros(len(res1))
+        for i in range(len(res1)):
+            temp_res[i]=int(res1[i])+int(res2[i])+int(res3[i])
+
+        final_res = np.zeros_like(res1)
+        for i in range(len(res1)):
+            if temp_res[i] <2:
+                final_res[i] = False
+            else:
+                final_res[i] = True
+        print("final validation result =>>>")
+        self.calc_acc_err(final_res,self.val_labels_mlp)
+
+    def calc_acc_err(self,res,val_labels_mlp):
+        right = 0
+        wrong = 0
+        for i in range(len(res)):
+            if res[i] == val_labels_mlp[i]:
+                right += 1
+            else:
+                #print("wrong index = ",i)
+                wrong += 1
+        acc = right / len(res)
+        err = wrong / len(res)
+        print("mlp acc=", acc, " err=", err)
+        return acc
+
+    def final_predict(self,test_features):
+        return None
+
 class knn_factory(abstract_classifier_factory):
     def __init__(self,k):
         self.k = k
