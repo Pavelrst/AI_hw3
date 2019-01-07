@@ -61,23 +61,35 @@ def main():
     #print("labels:",train_labels)
 
     folds = 2
-    split_crosscheck_groups(train_features, train_labels, folds)
+    #split_crosscheck_groups(train_features, train_labels, folds)
 
     # Experiment:
-    #k_list = [1,3,5,7,13]
-    k_list = [1]
+    k_list = [1,3,5,7,13]
+    #k_list = [1,3]
     acc_list = []
     err_list = []
     for k in k_list:
-        knn3_fac = knn_factory(3)
-        acc, err = evaluate(knn3_fac, folds)
+        knn_fac = knn_factory(k)
+        err, acc = evaluate(knn_fac, folds)
+        print("k=",k," acc=",acc," err=",err)
         acc_list.append(acc)
         err_list.append(err)
 #
     plt.subplot(2, 1, 1)
-    plt.plot(k_list, acc_list)
+    plt.plot(k_list, acc_list, '--', color='g')
+    plt.plot(k_list, acc_list, 'bo')
+    plt.ylabel("Accuracy")
+    plt.xlabel("k")
+    plt.xticks(k_list)
+    #plt.bar(k_list, acc_list, width=0.3, bottom=0.8)
     plt.subplot(2, 1, 2)
-    plt.plot(k_list, err_list)
+    plt.plot(k_list, err_list, '--', color='r')
+    plt.plot(k_list, err_list, 'bo')
+    plt.ylabel("Error")
+    plt.xlabel("k")
+    plt.xticks(k_list)
+    plt.tight_layout()
+    #plt.bar(k_list, err_list, width=0.3, bottom=0.04)
     plt.show()
 
 

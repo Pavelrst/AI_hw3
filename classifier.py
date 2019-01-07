@@ -23,29 +23,34 @@ class knn_classifier(abstract_classifier):
         self.calls = 0
 
     def classify(self, features):
-        print("classify called ", self.calls)
+        #print("classify called ", self.calls)
         self.calls += 1
         # pass on all data and generate dist for all.
-        distances = []
-        for sample in self.data:
-            dist = euclidean_distance(features, sample)
-            distances.append(dist)
+        debug = True
+        if (debug == False):
+            distances = []
+            for sample in self.data:
+                dist = euclidean_distance(features, sample)
+                distances.append(dist)
 
-        # select k nearest point
-        idx = np.argpartition(distances, self.k)
-        nearest_k_idx = idx[:self.k]
+            # select k nearest point
+            idx = np.argpartition(distances, self.k)
+            nearest_k_idx = idx[:self.k]
 
-        # get list of labels of nearest points.
-        k_labels = [self.labels[i] for i in nearest_k_idx]
+            # get list of labels of nearest points.
+            k_labels = [self.labels[i] for i in nearest_k_idx]
 
-        # return the majority prediction.
-        pred_true = k_labels.count(True)
-        pred_false = k_labels.count(False)
+            # return the majority prediction.
+            pred_true = k_labels.count(True)
+            pred_false = k_labels.count(False)
 
-        if pred_true >= pred_false:
-            return True
-        elif pred_true < pred_false:
-            return False
+            if pred_true >= pred_false:
+                return True
+            elif pred_true < pred_false:
+                return False
+        else:
+            # Random answer
+            return random.choice((True, False))
 
 
 def euclidean_distance(feature_list1, feature_list2):
