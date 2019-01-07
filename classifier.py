@@ -3,6 +3,9 @@ import random
 import numpy as np
 from hw3_utils import abstract_classifier
 from hw3_utils import abstract_classifier_factory
+from sklearn import tree
+from sklearn.linear_model import Perceptron
+from sklearn.neural_network import MLPClassifier
 
 class knn_factory(abstract_classifier_factory):
     def __init__(self,k):
@@ -49,7 +52,7 @@ class knn_classifier(abstract_classifier):
             elif pred_true < pred_false:
                 return False
         else:
-            # Random answer
+            # Random answer for debug usage
             return random.choice((True, False))
 
 
@@ -66,13 +69,6 @@ def euclidean_distance(feature_list1, feature_list2):
 
 def evaluate(classifier_factory, k):
     # k - number of folds.
-
-    # TODO: get k-folded dataset.
-    # TODO: run k-cross validation.
-    # TODO: 1 set is chosen as test.
-    # TODO: all others are chosen as train.
-    # TODO: repeat until all k fold been as "test set".
-
     global_acc = 0
     global_err = 0
     for iter_k in range(k):
@@ -88,13 +84,27 @@ def evaluate(classifier_factory, k):
             data_temp, labels_temp = load_k_fold_data(fold_idx)
             train_data += data_temp
             train_labels += labels_temp
-            #print("added to train fold - ",fold_idx)
-
-        classifier = classifier_factory.train(train_data, train_labels)
 
         classifications = []
-        for sample in test_data:
-            classifications.append(classifier.classify(sample))
+        if isinstance(classifier_factory, knn_factory):
+            print("we got knn")
+            classifier = classifier_factory.train(train_data, train_labels)
+            for sample in test_data:
+                classifications.append(classifier.classify(sample))
+        elif isinstance(classifier_factory, tree.DecisionTreeClassifier):
+            print("we got tree")
+            classifier_factory = classifier_factory.fit(np.array(train_data), train_labels)
+            classifications = classifier_factory.predict(np.array(test_data))
+        elif isinstance(classifier_factory, Perceptron):
+            print("we got preceptron")
+            classifier_factory = classifier_factory.fit(np.array(train_data), train_labels)
+            classifications = classifier_factory.predict(np.array(test_data))
+        elif isinstance(classifier_factory, MLPClassifier):
+            #print("we gor MLP")
+            #train_data = train_data / np.linalg.norm(train_data)
+            classifier_factory = classifier_factory.fit(np.array(train_data), train_labels)
+            #test_data = test_data / np.linalg.norm(test_data)
+            classifications = classifier_factory.predict(np.array(test_data))
 
         local_err = 0
         local_acc = 0
