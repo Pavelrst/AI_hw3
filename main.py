@@ -6,14 +6,17 @@ from matplotlib import pyplot as plt
 import csv
 
 from hw3_utils import load_data
+from hw3_utils import write_prediction
 from classifier import knn_factory
 from classifier import evaluate
-from classifier import load_k_fold_data
+
+# Used only in experiment.
 from sklearn import tree
 from sklearn.linear_model import Perceptron
-from sklearn.neural_network import MLPClassifier
-from classifier import triple_model
 
+# Competition model
+from classifier import triple_model
+from sklearn import preprocessing
 
 
 def split_crosscheck_groups(train_features, train_labels, num_folds):
@@ -60,21 +63,20 @@ def split_crosscheck_groups(train_features, train_labels, num_folds):
 
 
 def main():
-    skip_knn = True
-    skip_tree = True
-    skip_perc = True
+    # Variables used for debug
+    skip_knn = False
+    skip_tree = False
+    skip_perc = False
 
     train_features, train_labels, test_features = load_data('data/Data.pickle')
-    #print("features:",train_features.shape)
-    #print("labels:",train_labels)
 
+    # Split once the dataset to two folds.
     folds = 2
     #split_crosscheck_groups(train_features, train_labels, folds)
 
     if skip_knn != True:
-        # Experiment:
+        # Evaluating KNN with different k value:
         k_list = [1,3,5,7,13]
-        #k_list = [1,3]
         acc_list = []
         err_list = []
         with open('experiments6.csv', mode='w', newline='') as csv_file:
@@ -87,13 +89,13 @@ def main():
                 acc_list.append(acc)
                 err_list.append(err)
 
+        # Plot KNN Results
         plt.subplot(2, 1, 1)
         plt.plot(k_list, acc_list, '--', color='g')
         plt.plot(k_list, acc_list, 'bo')
         plt.ylabel("Accuracy")
         plt.xlabel("k")
         plt.xticks(k_list)
-        #plt.bar(k_list, acc_list, width=0.3, bottom=0.8)
         plt.subplot(2, 1, 2)
         plt.plot(k_list, err_list, '--', color='r')
         plt.plot(k_list, err_list, 'bo')
@@ -101,9 +103,9 @@ def main():
         plt.xlabel("k")
         plt.xticks(k_list)
         plt.tight_layout()
-        #plt.bar(k_list, err_list, width=0.3, bottom=0.04)
         plt.show()
 
+    # Perform classification for Perceptron and Tree and write to files.
     with open('experiments12.csv', mode='w', newline='') as csv_file:
         exp_writer = csv.writer(csv_file)
         if skip_tree != True:
@@ -121,9 +123,11 @@ def main():
             exp_writer.writerow([2, acc, err])
 
 
+    # Competition: Classify test_features
     my_model = triple_model()
     my_model.fit(train_features,train_labels)
-    res = my_model.final_predict(test_features)
+    res = my_model.final_predict(preprocessing.scale(test_features))
+    write_prediction(res)
 
 
 

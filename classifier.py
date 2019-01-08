@@ -20,16 +20,12 @@ class triple_model():
 
     def fit(self,train_features, train_labels):
         # TODO: train 3 different classifiers
-        print("training on second set")
-        #train_data_mlp = train_features[:750]
-        #train_labels_mlp = train_labels[:750]
-        #self.val_data_mlp = train_features[-250:]
-        #self.val_labels_mlp = train_labels[-250:]
+        print("training the triple model")
 
-        train_data_mlp = train_features[-750:]
-        train_labels_mlp = train_labels[-750:]
-        self.val_data_mlp = train_features[:250]
-        self.val_labels_mlp = train_labels[:250]
+        train_data_mlp = train_features
+        train_labels_mlp = train_labels
+        #self.val_data_mlp = train_features[:250]
+        #self.val_labels_mlp = train_labels[:250]
 
         print("training MLP")
         self.myMLP1 = MLPClassifier(solver='lbfgs', alpha=50)
@@ -44,7 +40,7 @@ class triple_model():
         #acc = self.calc_acc_err(res2, self.val_labels_mlp)
 
         print("training KNN")
-        self.myMLP3 = KNeighborsClassifier(n_neighbors=1, weights='distance')
+        self.myMLP3 = KNeighborsClassifier(n_neighbors=1)
         self.myMLP3.fit(preprocessing.scale(train_data_mlp), train_labels_mlp)
         #res3 = self.myMLP3.predict(preprocessing.scale(self.val_data_mlp))
         #acc = self.calc_acc_err(res3, self.val_labels_mlp)
@@ -98,7 +94,7 @@ class knn_factory(abstract_classifier_factory):
         self.k = k
 
     def train(self, data, labels):
-        print("train called")
+        print("training...")
         classifier = knn_classifier(data, labels, self.k)
         return classifier
 
@@ -112,10 +108,9 @@ class knn_classifier(abstract_classifier):
         self.calls = 0
 
     def classify(self, features):
-        #print("classify called ", self.calls)
         self.calls += 1
         # pass on all data and generate dist for all.
-        debug = True
+        debug = False
         if (debug == False):
             distances = []
             for sample in self.data:
@@ -173,23 +168,17 @@ def evaluate(classifier_factory, k):
 
         classifications = []
         if isinstance(classifier_factory, knn_factory):
-            print("we got knn")
+            #print("we got knn")
             classifier = classifier_factory.train(train_data, train_labels)
             for sample in test_data:
                 classifications.append(classifier.classify(sample))
         elif isinstance(classifier_factory, tree.DecisionTreeClassifier):
-            print("we got tree")
+            #print("we got tree")
             classifier_factory = classifier_factory.fit(np.array(train_data), train_labels)
             classifications = classifier_factory.predict(np.array(test_data))
         elif isinstance(classifier_factory, Perceptron):
-            print("we got preceptron")
+            #print("we got preceptron")
             classifier_factory = classifier_factory.fit(np.array(train_data), train_labels)
-            classifications = classifier_factory.predict(np.array(test_data))
-        elif isinstance(classifier_factory, MLPClassifier):
-            #print("we gor MLP")
-            #train_data = train_data / np.linalg.norm(train_data)
-            classifier_factory = classifier_factory.fit(np.array(train_data), train_labels)
-            #test_data = test_data / np.linalg.norm(test_data)
             classifications = classifier_factory.predict(np.array(test_data))
 
         local_err = 0
