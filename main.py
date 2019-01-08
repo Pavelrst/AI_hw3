@@ -12,7 +12,8 @@ from classifier import load_k_fold_data
 from sklearn import tree
 from sklearn.linear_model import Perceptron
 from sklearn.neural_network import MLPClassifier
-from classifier import mlp_concurrent_model
+from classifier import triple_model
+
 
 
 def split_crosscheck_groups(train_features, train_labels, num_folds):
@@ -120,8 +121,10 @@ def main():
             exp_writer.writerow([2, acc, err])
 
 
-    my_model = mlp_concurrent_model(0.965,10,0.97)
+    my_model = triple_model()
     my_model.fit(train_features,train_labels)
+    res = my_model.final_predict(test_features)
+
 
 
 if __name__ == '__main__':

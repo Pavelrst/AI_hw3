@@ -5,9 +5,14 @@ from hw3_utils import abstract_classifier
 from hw3_utils import abstract_classifier_factory
 from sklearn import tree
 from sklearn.linear_model import Perceptron
-from sklearn.neural_network import MLPClassifier
 
-class mlp_concurrent_model():
+# Those models used for competition.
+from sklearn.neural_network import MLPClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import svm
+from sklearn import preprocessing
+
+class triple_model():
     def __init__(self,min_acc=0.96,max_iter=5,max_acc=0.97):
         self.min_acc = min_acc
         self.max_iter = max_iter
@@ -15,62 +20,47 @@ class mlp_concurrent_model():
 
     def fit(self,train_features, train_labels):
         # TODO: train 3 different classifiers
-        alph = 1e-1
-        lr = 'constant'
-        layers = (100, 200, 200,50)
-        train_data_mlp = train_features[:750]
-        train_labels_mlp = train_labels[:750]
-        self.val_data_mlp = train_features[-250:]
-        self.val_labels_mlp = train_labels[-250:]
+        print("training on second set")
+        #train_data_mlp = train_features[:750]
+        #train_labels_mlp = train_labels[:750]
+        #self.val_data_mlp = train_features[-250:]
+        #self.val_labels_mlp = train_labels[-250:]
 
-        acc = 0
-        iter = 0
-        print("training first net")
-        while acc < self.min_acc and iter < self.max_iter:
-            iter += 1
-            self.myMLP1 = MLPClassifier(tol=1e-5, shuffle=True, max_iter=200, learning_rate=lr, activation='relu',
-                                        solver='lbfgs', alpha=alph,hidden_layer_sizes=(50,100,20))
-            self.myMLP1.fit(train_data_mlp, train_labels_mlp)
-            res1 = self.myMLP1.predict(self.val_data_mlp)
-            acc = self.calc_acc_err(res1,self.val_labels_mlp)
-            if acc > self.max_acc: break
+        train_data_mlp = train_features[-750:]
+        train_labels_mlp = train_labels[-750:]
+        self.val_data_mlp = train_features[:250]
+        self.val_labels_mlp = train_labels[:250]
 
-        acc = 0
-        iter = 0
-        print("training second net")
-        while acc < self.min_acc and iter < self.max_iter:
-            iter += 1
-            self.myMLP2 = MLPClassifier(tol=1e-3, shuffle=True, max_iter=200, learning_rate=lr, activation='relu',
-                                        solver='adam', alpha=alph, hidden_layer_sizes=(20,100,100,20))
-            self.myMLP2.fit(train_data_mlp, train_labels_mlp)
-            res2 = self.myMLP2.predict(self.val_data_mlp)
-            acc = self.calc_acc_err(res2, self.val_labels_mlp)
-            if acc > self.max_acc: break
+        print("training MLP")
+        self.myMLP1 = MLPClassifier(solver='lbfgs', alpha=50)
+        self.myMLP1.fit(preprocessing.scale(train_data_mlp), train_labels_mlp)
+        #res1 = self.myMLP1.predict(preprocessing.scale(self.val_data_mlp))
+        #acc = self.calc_acc_err(res1, self.val_labels_mlp)
 
-        acc = 0
-        iter = 0
-        print("training third net")
-        while acc < self.min_acc and iter < self.max_iter:
-            iter +=1
-            self.myMLP3 = MLPClassifier(tol=1e-5, shuffle=True, max_iter=200, learning_rate=lr, activation='relu',
-                                        solver='lbfgs', alpha=alph, hidden_layer_sizes=(50,200,5))
-            self.myMLP3.fit(train_data_mlp, train_labels_mlp)
-            res3 = self.myMLP3.predict(self.val_data_mlp)
-            acc = self.calc_acc_err(res3, self.val_labels_mlp)
-            if acc > self.max_acc: break
+        print("training SVM")
+        self.myMLP2 = svm.SVC(C=50, gamma='scale', class_weight='balanced')
+        self.myMLP2.fit(preprocessing.scale(train_data_mlp), train_labels_mlp)
+        #res2 = self.myMLP2.predict(preprocessing.scale(self.val_data_mlp))
+        #acc = self.calc_acc_err(res2, self.val_labels_mlp)
 
-        temp_res = np.zeros(len(res1))
-        for i in range(len(res1)):
-            temp_res[i]=int(res1[i])+int(res2[i])+int(res3[i])
+        print("training KNN")
+        self.myMLP3 = KNeighborsClassifier(n_neighbors=1, weights='distance')
+        self.myMLP3.fit(preprocessing.scale(train_data_mlp), train_labels_mlp)
+        #res3 = self.myMLP3.predict(preprocessing.scale(self.val_data_mlp))
+        #acc = self.calc_acc_err(res3, self.val_labels_mlp)
 
-        final_res = np.zeros_like(res1)
-        for i in range(len(res1)):
-            if temp_res[i] <2:
-                final_res[i] = False
-            else:
-                final_res[i] = True
-        print("final validation result =>>>")
-        self.calc_acc_err(final_res,self.val_labels_mlp)
+
+        #temp_res = np.zeros(len(res1))
+        #for i in range(len(res1)):
+        #    temp_res[i] = int(res1[i]) + int(res2[i]) + int(res3[i])
+        #final_res = np.zeros_like(res1)
+        #for i in range(len(res1)):
+        #    if temp_res[i] < 2:
+        #        final_res[i] = False
+        #    else:
+        #        final_res[i] = True
+        #print("final validation result of second set=>>>")
+        #self.calc_acc_err(final_res, self.val_labels_mlp)
 
     def calc_acc_err(self,res,val_labels_mlp):
         right = 0
@@ -87,7 +77,21 @@ class mlp_concurrent_model():
         return acc
 
     def final_predict(self,test_features):
-        return None
+        res1 = self.myMLP1.predict(preprocessing.scale(test_features))
+        res2 = self.myMLP2.predict(preprocessing.scale(test_features))
+        res3 = self.myMLP3.predict(preprocessing.scale(test_features))
+
+        temp_res = np.zeros(len(res1))
+        for i in range(len(res1)):
+            temp_res[i] = int(res1[i]) + int(res2[i]) + int(res3[i])
+        final_res = np.zeros_like(res1)
+        for i in range(len(res1)):
+            if temp_res[i] < 2:
+                final_res[i] = False
+            else:
+                final_res[i] = True
+        return final_res
+
 
 class knn_factory(abstract_classifier_factory):
     def __init__(self,k):
