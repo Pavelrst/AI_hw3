@@ -4,7 +4,6 @@ import random
 import pickle
 from matplotlib import pyplot as plt
 import csv
-import pandas as pd
 
 from hw3_utils import load_data
 from hw3_utils import write_prediction
@@ -14,8 +13,6 @@ from classifier import evaluate
 # Used only in experiment.
 from sklearn import tree
 from sklearn.linear_model import Perceptron
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
 
 # Competition model
 from classifier import triple_model
@@ -67,9 +64,9 @@ def split_crosscheck_groups(train_features, train_labels, num_folds):
 
 def main():
     # Variables used for debug
-    skip_knn = True
-    skip_tree = True
-    skip_perc = True
+    skip_knn = False
+    skip_tree = False
+    skip_perc = False
 
     train_features, train_labels, test_features = load_data('data/Data.pickle')
 
@@ -127,7 +124,6 @@ def main():
 
 
     # Competition: Classify test_features
-    print("Triple model")
     my_model = triple_model()
     my_model.fit(train_features,train_labels)
     res = my_model.final_predict(preprocessing.scale(test_features))

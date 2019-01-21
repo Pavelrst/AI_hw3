@@ -7,7 +7,9 @@ from sklearn import tree
 from sklearn.linear_model import Perceptron
 
 # Those models used for competition.
+from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn import svm
 from sklearn import preprocessing
 
 class triple_model():
@@ -22,20 +24,22 @@ class triple_model():
 
         train_data_mlp = train_features
         train_labels_mlp = train_labels
+        #self.val_data_mlp = train_features[:250]
+        #self.val_labels_mlp = train_labels[:250]
 
-        print("training KNN k=7")
-        self.myMLP1 = KNeighborsClassifier(n_neighbors=7,weights='distance')
+        print("training MLP")
+        self.myMLP1 = MLPClassifier(solver='lbfgs', alpha=50)
         self.myMLP1.fit(preprocessing.scale(train_data_mlp), train_labels_mlp)
         #res1 = self.myMLP1.predict(preprocessing.scale(self.val_data_mlp))
         #acc = self.calc_acc_err(res1, self.val_labels_mlp)
 
-        print("training Tree")
-        self.myMLP2 = tree.DecisionTreeClassifier(criterion="entropy", min_samples_leaf=14)
+        print("training SVM")
+        self.myMLP2 = svm.SVC(C=50, gamma='scale', class_weight='balanced')
         self.myMLP2.fit(preprocessing.scale(train_data_mlp), train_labels_mlp)
         #res2 = self.myMLP2.predict(preprocessing.scale(self.val_data_mlp))
         #acc = self.calc_acc_err(res2, self.val_labels_mlp)
 
-        print("training KNN k=7")
+        print("training KNN")
         self.myMLP3 = KNeighborsClassifier(n_neighbors=1)
         self.myMLP3.fit(preprocessing.scale(train_data_mlp), train_labels_mlp)
         #res3 = self.myMLP3.predict(preprocessing.scale(self.val_data_mlp))
@@ -168,7 +172,12 @@ def evaluate(classifier_factory, k):
             classifier = classifier_factory.train(train_data, train_labels)
             for sample in test_data:
                 classifications.append(classifier.classify(sample))
-        else:
+        elif isinstance(classifier_factory, tree.DecisionTreeClassifier):
+            #print("we got tree")
+            classifier_factory = classifier_factory.fit(np.array(train_data), train_labels)
+            classifications = classifier_factory.predict(np.array(test_data))
+        elif isinstance(classifier_factory, Perceptron):
+            #print("we got preceptron")
             classifier_factory = classifier_factory.fit(np.array(train_data), train_labels)
             classifications = classifier_factory.predict(np.array(test_data))
 
